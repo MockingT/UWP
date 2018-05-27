@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,6 +26,7 @@ namespace MyDiary
         public MainPage()
         {
             this.InitializeComponent();
+            setDate();
             this.ViewModel = App.ViewModel;
         }
         //set the date on the top of the main page
