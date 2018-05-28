@@ -1,12 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -14,6 +18,13 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.Storage;
+using SQLitePCL;
+using Windows.Storage.AccessCache;
+using Windows.Storage.Streams;
+using Windows.UI.Xaml.Media.Imaging;
+using Windows.UI.Popups;
+
 
 namespace MyDiary
 {
@@ -28,12 +39,16 @@ namespace MyDiary
         /// </summary>
 
         public static DiaryItemViewModel ViewModel;
+
+        static public SQLiteConnection conn;
+
         public App()
         {
             ViewModel = new DiaryItemViewModel();
             this.InitializeComponent();
             this.Suspending += OnSuspending;
-            
+
+            LoadDatabase();
         }
 
         /// <summary>
@@ -100,5 +115,34 @@ namespace MyDiary
             //TODO: 保存应用程序状态并停止任何后台活动
             deferral.Complete();
         }
+
+        private static void LoadDatabase()
+        {
+            // get a reference to the SQLite database
+            conn = new SQLiteConnection("MyDiary.db");
+
+            string sql = @"CREATE TABLE IF NOT EXISTS
+                                  DiaryItems (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                                            Date VARCHAR( 100 ),
+                                            Description VARCHAR( 100 ),
+                                            Text VARCHAR( 100 ),
+                                            ImgSource1 VARCHAR(100),
+                                            ImgSource2 VARCHAR(100),
+                                            ImgSource3 VARCHAR(100),
+                                            ImgSource4 VARCHAR(100),
+                                            ImgSource5 VARCHAR(100),
+                                            ImgSource6 VARCHAR(100),
+                                            ImgSource7 VARCHAR(100),
+                                            ImgSource8 VARCHAR(100),
+                                            ImgSource9 VARCHAR(100),
+                                            RecordName VARCHAR(100),
+                                            VideoName VARCHAR(100)
+
+                           );";
+            using (var statement = conn.Prepare(sql))
+            {
+                statement.Step();
+            }
+        }  
     }
 }
