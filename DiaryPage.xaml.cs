@@ -4,12 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 using Windows.Devices.Enumeration;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Media.Capture;
 using Windows.Media.MediaProperties;
+using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.Storage.Pickers;
+using Windows.Storage.AccessCache;
+using System.Text;
+using Windows.Storage.FileProperties;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -17,6 +24,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.UI.Core;
 
 // https://go.microsoft.com/fwlink/?LinkId=234238 上介绍了“空白页”项模板
 
@@ -36,6 +44,9 @@ namespace MyDiary
         private InMemoryRandomAccessStream video_buffer;
         private bool StartRecording = false;
         private bool StartVideo = false;
+
+        DiaryItemViewModel ViewModel = DiaryItemViewModel.CreatInstance();
+
         public DiaryPage()
         {
             record_buffer = new InMemoryRandomAccessStream();
@@ -49,6 +60,8 @@ namespace MyDiary
         private void SaveDiary(object sender, RoutedEventArgs e)
         {
             diary_text = text.Text;
+            SaveToFile(record_buffer, false);
+            SaveToFile(video_buffer, true);
         }
         public async void Record(object sender, RoutedEventArgs e)
         {
@@ -76,8 +89,51 @@ namespace MyDiary
             {
                 await captureManager_record.StopRecordAsync();
                 //SaveAudioToFile();
+                //SaveToFile(record_buffer, false);
                 StartRecording = false;
             }
+        }
+
+
+        private async void SaveToFile(InMemoryRandomAccessStream _memoryBuffer, bool isVideo)
+        {
+            IRandomAccessStream audioStream = _memoryBuffer.CloneStream();
+            StorageFolder storageFolder = Package.Current.InstalledLocation;
+            string DEFAULT_AUDIO_FILENAME = "";
+            int index = ViewModel.AllItems.Count;
+
+            if (isVideo)
+            {
+                DEFAULT_AUDIO_FILENAME = index + ".mp3";
+            }
+            else
+            {
+                DEFAULT_AUDIO_FILENAME = index + ".mp4";
+            }
+    
+            StorageFile storageFile = await storageFolder.CreateFileAsync(
+              DEFAULT_AUDIO_FILENAME, CreationCollisionOption.GenerateUniqueName);
+
+            using (IRandomAccessStream fileStream =
+              await storageFile.OpenAsync(FileAccessMode.ReadWrite))
+            {
+                await RandomAccessStream.CopyAndCloseAsync(
+                  audioStream.GetInputStreamAt(0), fileStream.GetOutputStreamAt(0));
+                await audioStream.FlushAsync();
+                audioStream.Dispose();
+            }
+        }
+
+        public async Task PlayFromDisk()
+        {
+            await Window.Current.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+            {
+                StorageFolder storageFolder = Package.Current.InstalledLocation;
+                StorageFile storageFile = await storageFolder.GetFileAsync("1.mp4"); //"1.mp4"是从磁盘里读出来的文件的名
+                IRandomAccessStream stream = await storageFile.OpenAsync(FileAccessMode.Read);
+                showVideo.SetSource(stream, storageFile.FileType);
+                showVideo.Play();
+            });
         }
 
         // play the record from the 
@@ -89,10 +145,12 @@ namespace MyDiary
         }
 
         // play the video from the 
-        public void PlayVideo(object sender, RoutedEventArgs e)
+        public async void PlayVideo(object sender, RoutedEventArgs e)
         {
             capturePreview.Visibility = Visibility.Collapsed;
             showVideo.Visibility = Visibility.Visible;
+            
+            //await PlayFromDisk();
             //MediaElement playbackMediaElement = new MediaElement();
             showVideo.SetSource(video_buffer, "MP4");
             showVideo.Play();
@@ -140,6 +198,7 @@ namespace MyDiary
             {
                 await captureManager_video.StopRecordAsync();
                 //SavaVideoToFile();
+                //SaveToFile(video_buffer, false);
                 StartVideo = false;
             }
         }
