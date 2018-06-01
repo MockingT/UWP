@@ -41,13 +41,21 @@ namespace MyDiary
         public static DiaryItemViewModel ViewModel;
 
         static public SQLiteConnection conn;
+        public static string db_name = "diary.db";
+        public static string table_name = "mydiary";
+        public static string SQL_CREATE_TABLE = "CREATE TABLE IF NOT EXISTS " + table_name + " (Id VARCHAR(100) PRIMARY KEY AUTOINCREMENT NOT NULL,Description VARCHAR(150),Date VARCHAR(150),ImgSrc VARCHAR(150)),AudioSrc VARCHAR(150)),VideoSrc VARCHAR(150));";
+        public static string SQL_INSERT = "INSERT INTO " + table_name + " (Id,Description,Date,ImgSrc,AudioSrc,VideoSrc) VALUES(?,?,?,?,?,?);";
+        public static string SQL_QUERY_VALUE = "SELECT Description,Date,ImgSrc,AudioSrc,VideoSrc FROM " + table_name;
+        public static string SQL_DELETE = "DELETE FROM " + table_name + " WHERE Date = ?";
+        public static string SQL_UPDATE = "UPDATE " + table_name + " SET Id = ?,Description = ?,Date = ?,ImgSrc = ?, AudioSrc = ? WHERE VideoSrc = ?";
+        public static string SQL_SEARCH = "SELECT Description FROM " + table_name + " WHERE Id = ?";
 
         public App()
         {
-            ViewModel = new DiaryItemViewModel();
+            ViewModel = DiaryItemViewModel.CreatInstance();
             this.InitializeComponent();
             this.Suspending += OnSuspending;
-
+            //load & read the data base
             LoadDatabase();
         }
 
@@ -118,31 +126,12 @@ namespace MyDiary
 
         private static void LoadDatabase()
         {
-            // get a reference to the SQLite database
-            conn = new SQLiteConnection("MyDiary.db");
-
-            string sql = @"CREATE TABLE IF NOT EXISTS
-                                  DiaryItems (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                                            Date VARCHAR( 100 ),
-                                            Description VARCHAR( 100 ),
-                                            Text VARCHAR( 100 ),
-                                            ImgSource1 VARCHAR(100),
-                                            ImgSource2 VARCHAR(100),
-                                            ImgSource3 VARCHAR(100),
-                                            ImgSource4 VARCHAR(100),
-                                            ImgSource5 VARCHAR(100),
-                                            ImgSource6 VARCHAR(100),
-                                            ImgSource7 VARCHAR(100),
-                                            ImgSource8 VARCHAR(100),
-                                            ImgSource9 VARCHAR(100),
-                                            RecordName VARCHAR(100),
-                                            VideoName VARCHAR(100)
-
-                           );";
-            using (var statement = conn.Prepare(sql))
+            conn = new SQLiteConnection(db_name);
+            using (var statement = conn.Prepare(SQL_CREATE_TABLE))
             {
                 statement.Step();
             }
-        }  
+            ViewModel.ReadFromDB();
+        }
     }
 }
