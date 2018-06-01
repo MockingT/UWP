@@ -25,6 +25,8 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Core;
+using Windows.Graphics.Imaging;
+using Windows.Graphics.Display;
 
 // https://go.microsoft.com/fwlink/?LinkId=234238 上介绍了“空白页”项模板
 
@@ -42,8 +44,14 @@ namespace MyDiary
         private InMemoryRandomAccessStream record_buffer;
         // store the video
         private InMemoryRandomAccessStream video_buffer;
+
+        private InMemoryRandomAccessStream img_buffer;
         private bool StartRecording = false;
         private bool StartVideo = false;
+
+        string recordFileName = "";
+        string videoFileName = "";
+        string imgFileName = "";
 
         DiaryItemViewModel ViewModel = DiaryItemViewModel.CreatInstance();
 
@@ -115,9 +123,20 @@ namespace MyDiary
         }
         private void SaveDiary(object sender, RoutedEventArgs e)
         {
-            diary_text = text.Text;
-            SaveToFile(record_buffer, false);
-            SaveToFile(video_buffer, true);
+            if (ViewModel.SelectedItem != null)
+            {
+
+            }
+            else
+            {
+                diary_text = text.Text;
+                SaveToFile(record_buffer, false);
+                SaveToFile(video_buffer, true);
+
+                ViewModel.AddNewDiary(DateTime.Now, diary_text, imgFileName, recordFileName, videoFileName);
+
+            }
+            
         }
         public async void Record(object sender, RoutedEventArgs e)
         {
@@ -150,21 +169,32 @@ namespace MyDiary
             }
         }
 
-
+        /*
+         * 位于项目的 \bin\x86\Debug 目录中
+         * 
+         * */
         private async void SaveToFile(InMemoryRandomAccessStream _memoryBuffer, bool isVideo)
         {
             IRandomAccessStream audioStream = _memoryBuffer.CloneStream();
             StorageFolder storageFolder = Package.Current.InstalledLocation;
             string DEFAULT_AUDIO_FILENAME = "";
-            int index = ViewModel.AllItems.Count;
+
 
             if (isVideo)
             {
-                DEFAULT_AUDIO_FILENAME = index + ".mp3";
+                recordFileName = DateTime.Now.Year.ToString();
+                recordFileName += DateTime.Now.Month.ToString();
+                recordFileName += DateTime.Now.Day.ToString();
+
+                DEFAULT_AUDIO_FILENAME = recordFileName + ".mp3";
             }
             else
             {
-                DEFAULT_AUDIO_FILENAME = index + ".mp4";
+                videoFileName = DateTime.Now.Year.ToString();
+                videoFileName += DateTime.Now.Month.ToString();
+                videoFileName += DateTime.Now.Day.ToString();
+
+                DEFAULT_AUDIO_FILENAME = videoFileName + ".mp4";
             }
     
             StorageFile storageFile = await storageFolder.CreateFileAsync(
@@ -178,6 +208,7 @@ namespace MyDiary
                 await audioStream.FlushAsync();
                 audioStream.Dispose();
             }
+
         }
 
         public async Task PlayFromDisk()
@@ -201,7 +232,7 @@ namespace MyDiary
         }
 
         // play the video from the 
-        public async void PlayVideo(object sender, RoutedEventArgs e)
+        public void PlayVideo(object sender, RoutedEventArgs e)
         {
             capturePreview.Visibility = Visibility.Collapsed;
             showVideo.Visibility = Visibility.Visible;
@@ -254,7 +285,7 @@ namespace MyDiary
             {
                 await captureManager_video.StopRecordAsync();
                 //SavaVideoToFile();
-                //SaveToFile(video_buffer, false);
+                SaveToFile(video_buffer, false);
                 StartVideo = false;
             }
         }
@@ -264,6 +295,40 @@ namespace MyDiary
             DeviceInformation desiredDevice = allVideoDevices.FirstOrDefault(x => x.EnclosureLocation != null && x.EnclosureLocation.Panel == desired);
             return desiredDevice ?? allVideoDevices.FirstOrDefault();
 
+        }
+
+        private async void image_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+
+            if (img_buffer != null)
+            {
+                img_buffer.Dispose();
+            }
+
+            FileOpenPicker fop = new FileOpenPicker();
+
+            fop.ViewMode = PickerViewMode.Thumbnail;
+            //设置打开时的默认路径，这里选择的是图片库
+            fop.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            fop.FileTypeFilter.Add(".jpg");
+            fop.FileTypeFilter.Add(".png");
+            fop.FileTypeFilter.Add(".jpeg");
+            fop.FileTypeFilter.Add(".bmp");
+            fop.FileTypeFilter.Add(".gif");
+            StorageFile file = await fop.PickSingleFileAsync();
+
+            BitmapImage srcImage = new BitmapImage();
+            //title.Text = file.Path;
+            if (file != null)
+            {
+                
+                using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
+                {
+                    await srcImage.SetSourceAsync(stream);
+                    image.Source = srcImage;
+
+                }
+            }
         }
     }
 }
