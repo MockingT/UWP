@@ -47,12 +47,68 @@ namespace MyDiary
 
         DiaryItemViewModel ViewModel = DiaryItemViewModel.CreatInstance();
 
+
         public DiaryPage()
         {
+            
             record_buffer = new InMemoryRandomAccessStream();
             video_buffer = new InMemoryRandomAccessStream();
             this.InitializeComponent();
+            initial();
         }
+
+        public void setDate()
+        {
+            int date = DateTime.Now.Day;
+            topDate.Text = date.ToString();
+            switch (DateTime.Now.Month)
+            {
+                case 1:
+                    topDate.Text = "Jan";
+                    break;
+                case 2:
+                    topDate.Text = "Feb";
+                    break;
+                case 3:
+                    topDate.Text = "March";
+                    break;
+                case 4:
+                    topDate.Text = "April";
+                    break;
+                case 5:
+                    topDate.Text = "May";
+                    break;
+                case 6:
+                    topDate.Text = "June";
+                    break;
+                case 7:
+                    topDate.Text = "July";
+                    break;
+                case 8:
+                    topDate.Text = "Aug";
+                    break;
+                case 9:
+                    topDate.Text = "Sep";
+                    break;
+                case 10:
+                    topDate.Text = "Oct";
+                    break;
+                case 11:
+                    topDate.Text = "Nov";
+                    break;
+                case 12:
+                    topDate.Text = "Dec";
+                    break;
+            }
+
+
+        }
+
+        private void initial()
+        {
+            ViewModel.AddNewDiary(DateTime.Now, "10129019", "ms-appx:///Assets/bas.jpg", "", "");
+        }
+
         private void Back(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(MainPage));
