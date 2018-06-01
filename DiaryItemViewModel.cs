@@ -31,9 +31,9 @@ namespace MyDiary
             set { this.selectedItem = value; }
         }
 
-        public void AddNewDiary(DateTimeOffset date, string des, string imgSrc, string record, string videoSrc)
+        public void AddNewDiary(DateTimeOffset date, string des, string record, string videoSrc)
         {
-            this.AllItems.Add(new DiaryItem(date, des, imgSrc, record, videoSrc));
+            this.AllItems.Add(new DiaryItem(date, des, record, videoSrc));
         }
         public void DelteDiary()
         {
@@ -42,11 +42,10 @@ namespace MyDiary
             this.selectedItem = null;
         }
 
-        public void UpDateDiary(string id, string des, string imgSrc, string record, string videoSrc)
+        public void UpDateDiary(string id, string des, string record, string videoSrc)
         {
             this.selectedItem.id = id;
             this.selectedItem.description = des;
-            this.selectedItem.image_src = imgSrc;
             this.selectedItem.record = record;
             this.selectedItem.videoSrc = videoSrc;
         }
@@ -59,7 +58,7 @@ namespace MyDiary
                 while (SQLiteResult.ROW == statement.Step())
                 {
                     DateTimeOffset _date = DateTimeOffset.Parse(statement[0].ToString());
-                    this.AllItems.Add(new DiaryItem(_date, statement[1].ToString(), statement[2].ToString(), statement[3].ToString(), statement[4].ToString()));
+                    this.AllItems.Add(new DiaryItem(_date, statement[1].ToString(), statement[2].ToString(), statement[3].ToString()));
                 }
             }
         }
