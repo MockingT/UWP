@@ -1,4 +1,5 @@
-﻿using System;
+using SQLitePCL;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace MyDiary
     /// </summary>
     public sealed partial class SearchPage : Page
     {
+        private string des;
         public SearchPage()
         {
             this.InitializeComponent();
@@ -29,6 +31,18 @@ namespace MyDiary
         private void Back(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(MainPage));
+        }
+        private void search(object sender, RoutedEventArgs e)
+        {
+            var db = App.conn;
+            using (var statement = db.Prepare(App.SQL_SEARCH))
+            {
+                statement.Bind(1, st.Text);
+                while (SQLiteResult.ROW == statement.Step())
+                {
+                    aa.Text = statement[1].ToString();
+                }
+            }
         }
     }
 }
