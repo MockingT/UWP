@@ -114,7 +114,7 @@ namespace MyDiary
 
         private void initial()
         {
-            ViewModel.AddNewDiary(DateTime.Now, "10129019", "ms-appx:///Assets/bas.jpg", "", "");
+            ViewModel.AddNewDiary(DateTime.Now, "10129019", "", "");
         }
 
         private void Back(object sender, RoutedEventArgs e)
@@ -133,16 +133,15 @@ namespace MyDiary
                 SaveToFile(record_buffer, false);
                 SaveToFile(video_buffer, true);
 
-                ViewModel.AddNewDiary(DateTime.Now, diary_text, imgFileName, recordFileName, videoFileName);
+                ViewModel.AddNewDiary(DateTime.Now, diary_text, recordFileName, videoFileName);
                 var db = App.conn;
                 using (var item = db.Prepare(App.SQL_INSERT))
                 {
                     item.Bind(1, 0);
                     item.Bind(2, diary_text);
                     item.Bind(3, DateTime.Now.ToString());
-                    item.Bind(4, imgFileName);
-                    item.Bind(5, recordFileName);
-                    item.Bind(6, videoFileName);
+                    item.Bind(4, recordFileName);
+                    item.Bind(5, videoFileName);
                     item.Step();
                 }
             }
