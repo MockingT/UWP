@@ -58,7 +58,7 @@ namespace MyDiary
 
         public DiaryPage()
         {
-            
+
             record_buffer = new InMemoryRandomAccessStream();
             video_buffer = new InMemoryRandomAccessStream();
             this.InitializeComponent();
@@ -134,18 +134,46 @@ namespace MyDiary
                 SaveToFile(video_buffer, true);
 
                 ViewModel.AddNewDiary(DateTime.Now, diary_text, imgFileName, recordFileName, videoFileName);
-
+                var db = App.conn;
+                using (var item = db.Prepare(App.SQL_INSERT))
+                {
+                    item.Bind(1, 0);
+                    item.Bind(2, diary_text);
+                    item.Bind(3, DateTime.Now.ToString());
+                    item.Bind(4, imgFileName);
+                    item.Bind(5, recordFileName);
+                    item.Bind(6, videoFileName);
+                    item.Step();
+                }
             }
-            
+
         }
+
+        private void DeleteDiary(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.SelectedItem != null)
+            {
+                var db = App.conn;
+                using (var item = db.Prepare(App.SQL_DELETE))
+                {
+                    item.Bind(1, ViewModel.SelectedItem.date.ToString());
+                    item.Step();
+                }
+            }
+            else
+            {
+            }
+
+        }
+
         public async void Record(object sender, RoutedEventArgs e)
         {
             // begin recording
-            if(StartRecording == false)
+            if (StartRecording == false)
             {
                 //await Initialize();
                 //await DeleteExistingFile();
-                if(record_buffer != null)
+                if (record_buffer != null)
                     record_buffer.Dispose();
                 record_buffer = new InMemoryRandomAccessStream();
                 MediaCaptureInitializationSettings settings =
@@ -196,7 +224,7 @@ namespace MyDiary
 
                 DEFAULT_AUDIO_FILENAME = videoFileName + ".mp4";
             }
-    
+
             StorageFile storageFile = await storageFolder.CreateFileAsync(
               DEFAULT_AUDIO_FILENAME, CreationCollisionOption.GenerateUniqueName);
 
@@ -208,7 +236,6 @@ namespace MyDiary
                 await audioStream.FlushAsync();
                 audioStream.Dispose();
             }
-
         }
 
         public async Task PlayFromDisk()
@@ -236,7 +263,7 @@ namespace MyDiary
         {
             capturePreview.Visibility = Visibility.Collapsed;
             showVideo.Visibility = Visibility.Visible;
-            
+
             //await PlayFromDisk();
             //MediaElement playbackMediaElement = new MediaElement();
             showVideo.SetSource(video_buffer, "MP4");
@@ -246,7 +273,7 @@ namespace MyDiary
 
         async private void openCamera(object sender, RoutedEventArgs e)
         {
-            if(StartVideo == false)
+            if (StartVideo == false)
             {
                 if (video_buffer != null)
                     video_buffer.Dispose();
@@ -321,7 +348,7 @@ namespace MyDiary
             //title.Text = file.Path;
             if (file != null)
             {
-                
+
                 using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
                 {
                     await srcImage.SetSourceAsync(stream);
