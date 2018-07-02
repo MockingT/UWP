@@ -27,24 +27,12 @@
 
             <Grid Height="450" Width="450">
                 <Grid.ColumnDefinitions >
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="450"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="150"/>
-                    <RowDefinition Height="150"/>
-                    <RowDefinition Height="150"/>
+                    <RowDefinition Height="450"/>
                 </Grid.RowDefinitions>
-                <Image Name="image" Grid.Row="0" Grid.Column="0" Source="Assets/StoreLogo.png"></Image>
-                <Image Grid.Row="0" Grid.Column="1" Source="Assets/StoreLogo.png"></Image>
-                <Image Grid.Row="0" Grid.Column="2" Source="Assets/StoreLogo.png"></Image>
-                <Image Grid.Row="1" Grid.Column="0" Source="Assets/StoreLogo.png"></Image>
-                <Image Grid.Row="1" Grid.Column="1" Source="Assets/StoreLogo.png"></Image>
-                <Image Grid.Row="1" Grid.Column="2" Source="Assets/StoreLogo.png"></Image>
-                <Image Grid.Row="2" Grid.Column="0" Source="Assets/StoreLogo.png"></Image>
-                <Image Grid.Row="2" Grid.Column="1" Source="Assets/StoreLogo.png"></Image>
-                <Image Grid.Row="2" Grid.Column="2" Source="Assets/StoreLogo.png"></Image>
+                <Image Name="image" Grid.Row="0" Grid.Column="0" Source="Assets/bas.jpg"></Image>
 
             </Grid>
 
@@ -64,7 +52,7 @@
                 <TextBlock Text="Play Record" Grid.Column="0" Grid.Row="1" FontSize="20" FontFamily="BankGothic Md BT" VerticalAlignment="Center" HorizontalAlignment="Center"></TextBlock>
                 <AppBarButton Click="PlayRecord" Icon="Play" Grid.Column="1" Grid.Row="1"></AppBarButton>
                 <TextBlock Text="Open Camera" Grid.Column="0" Grid.Row="2" FontSize="20" FontFamily="BankGothic Md BT" VerticalAlignment="Center" HorizontalAlignment="Center"></TextBlock>
-                <AppBarButton Icon="Camera" Click="openCamera" Grid.Column="1" Grid.Row="2"></AppBarButton>
+                <AppBarButton Name="camera" Icon="Camera" Click="openCamera" Grid.Column="1" Grid.Row="2"></AppBarButton>
                 <TextBlock Text="Play Video" Grid.Column="0" Grid.Row="3" FontSize="20" FontFamily="BankGothic Md BT" VerticalAlignment="Center" HorizontalAlignment="Center"></TextBlock>
                 <AppBarButton Icon="Play" Click="PlayVideo" Grid.Column="1" Grid.Row="3"></AppBarButton>
             </Grid>
@@ -77,4 +65,3 @@
 
     </ScrollViewer>
 </Page>
-
