@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text;
+using Windows.ApplicationModel;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -12,12 +17,6 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using System.Text;
-using Windows.Data.Json;
-using Windows.ApplicationModel.DataTransfer;
-using Windows.ApplicationModel;
-using Windows.Storage.Streams;
-
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -29,12 +28,18 @@ namespace MyDiary
     public sealed partial class MainPage : Page
     {
         private DiaryItemViewModel ViewModel { get; set; }
+
         public MainPage()
         {
             this.InitializeComponent();
             setDate();
             this.ViewModel = App.ViewModel;
+            //initial();
             GetNews();
+        }
+        private void initial()
+        {
+            ViewModel.AddNewDiary(DateTime.Now, "10129019", "", "");
         }
         //set the date on the top of the main page
         public void setDate()
@@ -86,6 +91,7 @@ namespace MyDiary
 
         private void ToDiaryPage(object sender, RoutedEventArgs e)
         {
+            ViewModel.SelectedItem = null;
             Frame.Navigate(typeof(DiaryPage));
         }
         private void ToSearchPage(object sender, RoutedEventArgs e)
@@ -96,6 +102,39 @@ namespace MyDiary
         {
             Frame.Navigate(typeof(CalenderPage));
         }
+
+        private void DiaryItemClicked(object sender, ItemClickEventArgs e)
+        {
+            ViewModel.SelectedItem = (DiaryItem)e.ClickedItem;
+            Frame.Navigate(typeof(DiaryPage));
+        }
+
+        private void EditMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(DiaryPage));
+        }
+
+        private void AppBarButton_Click(object sender, RoutedEventArgs e)
+        {
+            var data = (sender as FrameworkElement).DataContext;
+            var item = listView.ContainerFromItem(data) as ListViewItem;
+            ViewModel.SelectedItem = item.Content as DiaryItem;
+        }
+
+        private void DeleteMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.SelectedItem != null)
+            {
+                var db = App.conn;
+                using (var item = db.Prepare(App.SQL_DELETE))
+                {
+                    item.Bind(1, ViewModel.SelectedItem.date.ToString());
+                    item.Step();
+                }
+                ViewModel.DelteDiary();
+            }
+        }
+
         private async void GetNews()
         {
             //Create an HTTP client object
@@ -146,14 +185,14 @@ namespace MyDiary
                 // JsonArray arr = jsonObject.GetNamedArray("result").GetArray();
                 JsonObject obj = jsonObject.GetNamedObject("result");
                 JsonArray arr = obj.GetNamedArray("data").GetArray();
-                
+
                 StringBuilder s = new StringBuilder();
                 s.Append(arr[0].GetObject().GetNamedValue("title").GetString());
                 s.Append("。\n新闻来源于");
                 s.Append(arr[0].GetObject().GetNamedValue("url").GetString());
-                
+
                 NewsBlock.Text = s.ToString();
-                
+
 
             }
             catch (Exception ex)
@@ -162,7 +201,7 @@ namespace MyDiary
             }
         }
 
-        private void Share(object sender, RoutedEventArgs e)
+        private void ShareMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
             DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
             dataTransferManager.DataRequested += DataTransferManager_DataRequested;
@@ -172,9 +211,9 @@ namespace MyDiary
         async void DataTransferManager_DataRequested(DataTransferManager sender, DataRequestedEventArgs args)
         {
             DataRequest request = args.Request;
-            //DiaryItem item = ViewModel.SelectedItem;
-            DiaryItem item = new DiaryItem();
-            if(item != null)
+            DiaryItem item = ViewModel.SelectedItem;
+            //DiaryItem item = new DiaryItem();
+            if (item != null)
             {
                 request.Data.Properties.Title = "Diary";
 
@@ -182,17 +221,23 @@ namespace MyDiary
                 request.Data.Properties.Description = "haha";
                 request.Data.SetText("Diary");
                 request.Data.SetText("haha");
-                // request.Data.SetText(item.description);
+                //request.Data.SetText(item.description);
 
                 var Deferral = args.Request.GetDeferral();
-                var SharePhoto = await Package.Current.InstalledLocation.GetFileAsync("Assets\\pic.jpg");
+                var SharePhoto = await Package.Current.InstalledLocation.GetFileAsync("Assets\\bas.jpg");
                 request.Data.Properties.Thumbnail = RandomAccessStreamReference.CreateFromFile(SharePhoto);
                 request.Data.SetBitmap(RandomAccessStreamReference.CreateFromFile(SharePhoto));
                 Deferral.Complete();
             }
-            
+
 
         }
 
+        private void Share(object sender, RoutedEventArgs e)
+        {
+            DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
+            dataTransferManager.DataRequested += DataTransferManager_DataRequested;
+            DataTransferManager.ShowShareUI();
+        }
     }
 }
