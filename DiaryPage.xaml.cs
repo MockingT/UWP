@@ -62,7 +62,14 @@ namespace MyDiary
             record_buffer = new InMemoryRandomAccessStream();
             video_buffer = new InMemoryRandomAccessStream();
             this.InitializeComponent();
-            initial();
+            //initial();
+            if (ViewModel.SelectedItem != null)
+            {
+                text.Text = ViewModel.SelectedItem.description;
+                recordFileName = ViewModel.SelectedItem.record;
+                videoFileName = ViewModel.SelectedItem.videoSrc;
+
+            }
         }
 
         public void setDate()
@@ -125,25 +132,31 @@ namespace MyDiary
         {
             if (ViewModel.SelectedItem != null)
             {
+                text.Text = ViewModel.SelectedItem.description;
+                recordFileName = ViewModel.SelectedItem.record;
+                videoFileName = ViewModel.SelectedItem.videoSrc;
 
             }
             else
             {
+
                 diary_text = text.Text;
                 SaveToFile(record_buffer, false);
                 SaveToFile(video_buffer, true);
-
-                ViewModel.AddNewDiary(DateTime.Now, diary_text, recordFileName, videoFileName);
+                
                 var db = App.conn;
                 using (var item = db.Prepare(App.SQL_INSERT))
                 {
-                    item.Bind(1, 0);
+                    item.Bind(1, ViewModel.AllItems.Count);
                     item.Bind(2, diary_text);
                     item.Bind(3, DateTime.Now.ToString());
                     item.Bind(4, recordFileName);
                     item.Bind(5, videoFileName);
                     item.Step();
                 }
+                ViewModel.AddNewDiary(DateTime.Now, diary_text, recordFileName, videoFileName);
+
+                Frame.Navigate(typeof(MainPage));
             }
 
         }
@@ -158,6 +171,8 @@ namespace MyDiary
                     item.Bind(1, ViewModel.SelectedItem.date.ToString());
                     item.Step();
                 }
+                ViewModel.DelteDiary();
+                Frame.Navigate(typeof(MainPage));
             }
             else
             {
@@ -237,33 +252,60 @@ namespace MyDiary
             }
         }
 
-        public async Task PlayFromDisk()
+        public async Task PlayFromDisk(int type)
         {
-            await Window.Current.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+            if (type == 0)
             {
-                StorageFolder storageFolder = Package.Current.InstalledLocation;
-                StorageFile storageFile = await storageFolder.GetFileAsync("1.mp4"); //"1.mp4"是从磁盘里读出来的文件的名
-                IRandomAccessStream stream = await storageFile.OpenAsync(FileAccessMode.Read);
-                showVideo.SetSource(stream, storageFile.FileType);
-                showVideo.Play();
-            });
+                recordFileName = ViewModel.SelectedItem.record;
+                recordFileName += ".mp3";
+                await Window.Current.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+                {
+                    StorageFolder storageFolder = Package.Current.InstalledLocation;
+                    StorageFile storageFile = await storageFolder.GetFileAsync(recordFileName); //"1.mp3"是从磁盘里读出来的文件的名
+                    IRandomAccessStream stream = await storageFile.OpenAsync(FileAccessMode.Read);
+                    showVideo.SetSource(stream, storageFile.FileType);
+                    showVideo.Play();
+                });
+            }
+            else if(type == 1)
+            {
+                videoFileName = ViewModel.SelectedItem.videoSrc;
+                videoFileName += ".mp4";
+                await Window.Current.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+                {
+                    StorageFolder storageFolder = Package.Current.InstalledLocation;
+                    StorageFile storageFile = await storageFolder.GetFileAsync(videoFileName); //"1.mp4"是从磁盘里读出来的文件的名
+                    IRandomAccessStream stream = await storageFile.OpenAsync(FileAccessMode.Read);
+                    showVideo.SetSource(stream, storageFile.FileType);
+                    showVideo.Play();
+                });
+            }
         }
 
         // play the record from the 
-        public void PlayRecord(object sender, RoutedEventArgs e)
+        public async void PlayRecord(object sender, RoutedEventArgs e)
         {
+            if (ViewModel.SelectedItem != null)
+            {
+                await PlayFromDisk(0);
+                return;
+            }
             MediaElement playbackMediaElement = new MediaElement();
             playbackMediaElement.SetSource(record_buffer, "MP3");
             playbackMediaElement.Play();
         }
 
         // play the video from the 
-        public void PlayVideo(object sender, RoutedEventArgs e)
+        public async void PlayVideo(object sender, RoutedEventArgs e)
         {
+            if (ViewModel.SelectedItem != null)
+            {
+                await PlayFromDisk(1);
+                return;
+            }
             capturePreview.Visibility = Visibility.Collapsed;
             showVideo.Visibility = Visibility.Visible;
-
-            //await PlayFromDisk();
+            
             //MediaElement playbackMediaElement = new MediaElement();
             showVideo.SetSource(video_buffer, "MP4");
             showVideo.Play();
@@ -274,6 +316,7 @@ namespace MyDiary
         {
             if (StartVideo == false)
             {
+                //camera.Icon = IconElement.
                 if (video_buffer != null)
                     video_buffer.Dispose();
                 video_buffer = new InMemoryRandomAccessStream();
@@ -322,7 +365,7 @@ namespace MyDiary
             return desiredDevice ?? allVideoDevices.FirstOrDefault();
 
         }
-
+        /*
         private async void image_Tapped(object sender, TappedRoutedEventArgs e)
         {
 
@@ -355,6 +398,6 @@ namespace MyDiary
 
                 }
             }
-        }
+        }*/
     }
 }
