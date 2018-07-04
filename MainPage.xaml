@@ -15,7 +15,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Border BorderThickness="2,0,2,2" Grid.Column="1" RequestedTheme="Dark" BorderBrush="#FF13232F" Width="200" Height="130" HorizontalAlignment="Center" VerticalAlignment="Top">
-                    <TextBlock  Text="24" Name="top_date" FontSize="100" HorizontalAlignment="Center" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Top" FontFamily="Algerian" FontWeight="Bold" FontStyle="Normal" Foreground="#FF170B1B"/>
+                    <TextBlock  Text="1" Name="top_date" FontSize="100" HorizontalAlignment="Center" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Top" FontFamily="Algerian" FontWeight="Bold" FontStyle="Normal" Foreground="#FF170B1B"/>
                 </Border>
                 <AppBarButton Icon="Filter" Grid.Column="0" BorderBrush="#FF280808" >
                     <AppBarButton.Flyout>
@@ -32,9 +32,9 @@
             <TextBlock Name="top_month" Text="May" HorizontalAlignment="Center" FontSize="50"  FontFamily="BankGothic Md BT"  Height="57"/>
             <Line Width="600"  StrokeThickness="2" VerticalAlignment="Bottom" Stretch="Fill" Visibility="Visible" Stroke="Gray" X1="1"/>
             <TextBox Height="200" Width="600" Name="NewsBlock" FontSize="30" FontFamily="Bodoni MT" TextWrapping="Wrap" IsReadOnly="True" BorderThickness="0,0,0,0" Background="#FFF3F3F7"></TextBox>
-            <TextBlock Height="50" Text="* 二零一八年 五月 *" TextAlignment="Center" FontSize="24" FontFamily="Bodoni MT" Foreground="Gray"  ></TextBlock>
+            <TextBlock x:Name="lowMonth" Height="50" Text="* 二零一八年 六月 *" TextAlignment="Center" FontSize="24" FontFamily="Bodoni MT" Foreground="Gray"  ></TextBlock>
 
-            <ListView ItemsSource="{x:Bind ViewModel.AllItems,Mode=OneTime}" HorizontalAlignment="Center" Background="White" >
+            <ListView x:Name="listView" ItemsSource="{x:Bind ViewModel.AllItems,Mode=OneWay}" HorizontalAlignment="Center" Background="White" IsItemClickEnabled="True" ItemClick="DiaryItemClicked">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="local:DiaryItem">
 
@@ -50,20 +50,20 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="24" Grid.Row="0" FontSize="50" Height="60" Width="60" HorizontalAlignment="Center"/>
-                                <TextBlock Text="周六" Grid.Row="1" HorizontalAlignment="Center" FontSize="20"></TextBlock>
-                                <TextBlock Text="22:14" Grid.Row="2" HorizontalAlignment="Center" FontSize="20"></TextBlock>
+                                <TextBlock Text="{x:Bind month, Mode=OneWay}" Grid.Row="0" FontSize="50" Height="60" Width="60" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{x:Bind day, Mode=OneWay}" Grid.Row="1" HorizontalAlignment="Center" FontSize="20"></TextBlock>
+                                <TextBlock Text="{x:Bind weekday, Mode=OneWay}" Grid.Row="2" HorizontalAlignment="Center" FontSize="20"></TextBlock>
                             </Grid>
                             <Grid BorderThickness="1,0,0,0" Grid.Column="1" Height="80" BorderBrush="Gray" >
-                                <TextBlock Text="今日做完项目" VerticalAlignment="Center" Margin="10"></TextBlock>
+                                <TextBlock Text="{x:Bind description, Mode=OneWay}" VerticalAlignment="Center" Margin="10"></TextBlock>
                             </Grid>
 
-                            <AppBarButton Grid.Column="2" Icon="Setting" IsCompact="True"  VerticalAlignment="Center" HorizontalAlignment="Right">
+                            <AppBarButton Grid.Column="2" Icon="Setting" IsCompact="True"  VerticalAlignment="Center" HorizontalAlignment="Right" Click="AppBarButton_Click">
                                 <AppBarButton.Flyout>
                                     <MenuFlyout>
-                                        <MenuFlyoutItem Text="Edit"/>
-                                        <MenuFlyoutItem Text="Delete"/>
-                                        <MenuFlyoutItem Text="Share"/>
+                                        <MenuFlyoutItem Text="Edit" Click="EditMenuFlyoutItem_Click"/>
+                                        <MenuFlyoutItem Text="Delete" Click="DeleteMenuFlyoutItem_Click"/>
+                                        <MenuFlyoutItem Text="Share" Click="ShareMenuFlyoutItem_Click"/>
                                     </MenuFlyout>
                                 </AppBarButton.Flyout>
                             </AppBarButton>

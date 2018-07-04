@@ -26,10 +26,13 @@ namespace MyDiary
         public string id { get; set; }
 
         public DateTimeOffset date { get; set; }
+        public string year;
+        public string month;
+        public string day;
+        public string weekday;
 
         private string des;
-        public string description
-        {
+        public string description {
             get { return this.des; }
             set
             {
@@ -38,19 +41,7 @@ namespace MyDiary
             }
         }
 
-
-        private ImageSource ImgSource;
-        public string image_src
-        {
-            get { return this.ImgSource.ToString(); }
-            set
-            {
-                BitmapImage src = new BitmapImage(new Uri(value));
-                this.ImgSource = src;
-                this.OnPropertyChanged();
-            }
-        }
-
+ 
         private string Record;
         public string record
         {
@@ -73,12 +64,15 @@ namespace MyDiary
             }
         }
 
-        public DiaryItem(DateTimeOffset date, string description, string record, string videoSrc)
+        public DiaryItem(DateTimeOffset date, string des, string record, string videoSrc)
         {
             this.id = Guid.NewGuid().ToString(); // create new id
-            this.description = description;
+            this.description = des;
             this.date = date;
-            //this.ImgSource = new BitmapImage(new Uri(imgSrc));
+            year = date.Year.ToString();
+            month = date.Month.ToString();
+            day = date.Day.ToString();
+            weekday = date.DayOfWeek.ToString();
             this.Record = record;
             this.VideoSrc = videoSrc;
         }

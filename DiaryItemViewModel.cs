@@ -57,8 +57,8 @@ namespace MyDiary
             {
                 while (SQLiteResult.ROW == statement.Step())
                 {
-                    DateTimeOffset _date = DateTimeOffset.Parse(statement[0].ToString());
-                    this.AllItems.Add(new DiaryItem(_date, statement[1].ToString(), statement[2].ToString(), statement[3].ToString()));
+                    DateTimeOffset _date = DateTimeOffset.Parse(statement[1].ToString());
+                    this.AllItems.Add(new DiaryItem(_date, statement[0].ToString(), statement[2].ToString(), statement[3].ToString()));
                 }
             }
         }
