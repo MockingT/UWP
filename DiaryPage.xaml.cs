@@ -147,11 +147,10 @@ namespace MyDiary
                 var db = App.conn;
                 using (var item = db.Prepare(App.SQL_INSERT))
                 {
-                    item.Bind(1, ViewModel.AllItems.Count);
-                    item.Bind(2, diary_text);
-                    item.Bind(3, DateTime.Now.ToString());
-                    item.Bind(4, recordFileName);
-                    item.Bind(5, videoFileName);
+                    item.Bind(1, diary_text);
+                    item.Bind(2, DateTime.Now.ToString());
+                    item.Bind(3, recordFileName);
+                    item.Bind(4, videoFileName);
                     item.Step();
                 }
                 ViewModel.AddNewDiary(DateTime.Now, diary_text, recordFileName, videoFileName);
@@ -168,7 +167,7 @@ namespace MyDiary
                 var db = App.conn;
                 using (var item = db.Prepare(App.SQL_DELETE))
                 {
-                    item.Bind(1, ViewModel.SelectedItem.date.ToString());
+                    item.Bind(1, GetId());
                     item.Step();
                 }
                 ViewModel.DelteDiary();
@@ -365,6 +364,35 @@ namespace MyDiary
             return desiredDevice ?? allVideoDevices.FirstOrDefault();
 
         }
+
+        private int GetId()
+        {
+            string query = "%%";
+            int id = 0;
+            string selectedDetail = ViewModel.SelectedItem.description;
+
+            using (var getId = App.conn.Prepare("SELECT Id, Description FROM " + App.table_name +
+                " WHERE Id LIKE ? OR Description LIKE ?"))
+            {
+                getId.Bind(1, query);
+                getId.Bind(2, query);
+
+                while (getId.Step() != SQLitePCL.SQLiteResult.DONE)
+                {
+                    string t_id = getId[0].ToString();
+                    string t_des = getId[1].ToString();
+
+                    if (selectedDetail == t_des)
+                    {
+                        id = int.Parse(t_id);
+                        break;
+                    }
+                }
+            }
+
+            return id;
+        }
+
         /*
         private async void image_Tapped(object sender, TappedRoutedEventArgs e)
         {

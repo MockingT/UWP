@@ -128,7 +128,7 @@ namespace MyDiary
                 var db = App.conn;
                 using (var item = db.Prepare(App.SQL_DELETE))
                 {
-                    item.Bind(1, ViewModel.SelectedItem.date.ToString());
+                    item.Bind(1, GetId());
                     item.Step();
                 }
                 ViewModel.DelteDiary();
@@ -239,5 +239,35 @@ namespace MyDiary
             dataTransferManager.DataRequested += DataTransferManager_DataRequested;
             DataTransferManager.ShowShareUI();
         }
+
+        // get the selected item to update
+        private int GetId()
+        {
+            string query = "%%";
+            int id = 0;
+            string selectedDetail = ViewModel.SelectedItem.description;
+
+            using (var getId = App.conn.Prepare("SELECT Id, Description FROM " + App.table_name +
+                " WHERE Id LIKE ? OR Description LIKE ?"))
+            {
+                getId.Bind(1, query);
+                getId.Bind(2, query);
+
+                while (getId.Step() != SQLitePCL.SQLiteResult.DONE)
+                {
+                    string t_id = getId[0].ToString();
+                    string t_des = getId[1].ToString();
+
+                    if (selectedDetail == t_des)
+                    {
+                        id = int.Parse(t_id);
+                        break;
+                    }
+                }
+            }
+
+            return id;
+        }
+
     }
 }

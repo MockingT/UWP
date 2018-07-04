@@ -44,9 +44,9 @@ namespace MyDiary
         public static string db_name = "diary.db";
         public static string table_name = "mydiary";
         public static string SQL_CREATE_TABLE = "CREATE TABLE IF NOT EXISTS " + table_name + " (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,Description VARCHAR(150),Date VARCHAR(150),AudioSrc VARCHAR(150),VideoSrc VARCHAR(150));";
-        public static string SQL_INSERT = "INSERT INTO " + table_name + " (Id,Description,Date,AudioSrc,VideoSrc) VALUES(?,?,?,?,?);";
+        public static string SQL_INSERT = "INSERT INTO " + table_name + " (Description,Date,AudioSrc,VideoSrc) VALUES(?,?,?,?);";
         public static string SQL_QUERY_VALUE = "SELECT Description,Date,AudioSrc,VideoSrc FROM " + table_name;
-        public static string SQL_DELETE = "DELETE FROM " + table_name + " WHERE Date = ?";
+        public static string SQL_DELETE = "DELETE FROM " + table_name + " WHERE Id = ?";
         public static string SQL_UPDATE = "UPDATE " + table_name + " SET Id = ?,Description = ?,Date = ?,AudioSrc = ? WHERE VideoSrc = ?";
         public static string SQL_SEARCH = "SELECT Description FROM " + table_name + " WHERE Id = ?";
 
