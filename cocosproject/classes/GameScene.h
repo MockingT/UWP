@@ -34,6 +34,8 @@ public:
 
 	void gameOver();
 
+	void replayCallback(Ref * pSender);
+
 	// implement the "static create()" method manually
 	CREATE_FUNC(GameScene);
 
