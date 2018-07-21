@@ -43,6 +43,11 @@ public:
 
 	void replayCallback(Ref * pSender);
 
+	// 进入传送门随机传送
+	void transfer(EventCustom * event);
+
+	void updateIsTransfer(float);
+
 	// 吃天上掉的水果会补血
 	void eatFruits(EventCustom * event);
 	// implement the "static create()" method manually
@@ -61,6 +66,7 @@ private:
 	Vec2 origin;
 	bool headingLeft1;
 	bool headingLeft2;
+	bool isTransfer;
 
 	char movekey1;
 	char movekey2;

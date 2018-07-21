@@ -50,6 +50,7 @@ bool GameScene::init() {
 	base->setScaleX(3);
 	base->setPosition(Vec2(visibleSize.width / 2, -20));
 
+	// 地板的刚体属性
 	auto baseBody = PhysicsBody::createBox(base->getContentSize(), PhysicsMaterial(100.0f, 0.5f, 0.0f));
 	baseBody->setCategoryBitmask(0xFFFFFFFF);
 	baseBody->setCollisionBitmask(0xFFFFFFFF);
@@ -60,13 +61,13 @@ bool GameScene::init() {
 
 	this->addChild(base, 1);
 
+	// 添加背景图，加载tmx文件
 	auto tmx = TMXTiledMap::create("map.tmx");
 	float scale = visibleSize.height / tmx->getContentSize().height;
 	tmx->setScale(scale);
 	tmx->setPosition(visibleSize.width / 2, visibleSize.height / 2);
 	tmx->setAnchorPoint(Vec2(0.5, 0.5));
 	this->addChild(tmx, 0);
-
 
 	auto brick = tmx->getObjectGroup("brick");
 	auto bricks = brick->getObjects();
@@ -91,16 +92,23 @@ bool GameScene::init() {
 		this->addChild(base, 1);
 
 	}
+
+	// 添加4个传送门
 	auto door = tmx->getObjectGroup("door");
-	auto doors = brick->getObjects();
+	auto doors = door->getObjects();
 	for (auto obj : doors) {
 		ValueMap& dict = obj.asValueMap();
 		float x = dict["x"].asFloat();
 		float y = dict["y"].asFloat();
-		doorposition.push_back(Vec2(x, y));
-
+		float width = dict["width"].asFloat();
+		float height = dict["height"].asFloat();
+		doorposition.push_back(Vec2((x + width / 2) * scale, (y + height / 2) * scale));
+		CCLOG("%f %f", x * scale, y * scale);
 	}
-
+	CCLOG("-----");
+	for (auto i : doorposition) {
+		CCLOG("%f %f", i.x, i.y);
+	}
 	
 
 	auto playerLabel1 = Label::createWithTTF(ttfConfig, "player1: ");
@@ -115,7 +123,8 @@ bool GameScene::init() {
 	Sprite* sp2 = Sprite::create("hp.png", CC_RECT_PIXELS_TO_POINTS(Rect(0, 320, 420, 47)));
 	Sprite* sp = Sprite::create("hp.png", CC_RECT_PIXELS_TO_POINTS(Rect(610, 362, 4, 16)));
 
-	hp1 = 100, hp2 = 100, ct;
+	hp1 = 100, hp2 = 100, ct = 0;
+	isTransfer = false;
 
 	pT1 = ProgressTimer::create(sp);
 	pT1->setScaleX(90);
@@ -201,6 +210,7 @@ bool GameScene::init() {
 
 	// 调度器
 	schedule(schedule_selector(GameScene::update), 0.04f, kRepeatForever, 0);
+	schedule(schedule_selector(GameScene::updateIsTransfer), 1.0f, kRepeatForever, 0);
 
 	srand(time(NULL));
 
@@ -466,12 +476,16 @@ void GameScene::update(float fl) {
 
 	EventCustom e1("eatFruits");
 	_eventDispatcher->dispatchEvent(&e1);
-	//gameOver();
+
+	EventCustom e2("transfer");
+	_eventDispatcher->dispatchEvent(&e2);
+	
 	ct++;
 	if (ct == 250) {
 		randomOffer();
 		ct = 0;
 	}
+	
 	if (ct == 200) {
 		if (apple != nullptr) {
 			apple->removeFromParentAndCleanup(true);
@@ -485,6 +499,7 @@ void GameScene::update(float fl) {
 			grape->removeFromParentAndCleanup(true);
 			grape = nullptr;
 		}
+		CCLOG("%f %f", player1->getPosition().x, player1->getPosition().y);
 	}
 }
 
@@ -494,6 +509,9 @@ void GameScene::addCustomListener() {
 
 	auto meetListener1 = EventListenerCustom::create("eatFruits", CC_CALLBACK_1(GameScene::eatFruits, this));
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(meetListener1, this);
+
+	auto meetListener2 = EventListenerCustom::create("transfer", CC_CALLBACK_1(GameScene::transfer, this));
+	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(meetListener2, this);
 }
 
 void GameScene::gameOver() {
@@ -671,4 +689,46 @@ void GameScene::preloadmusic() {
 void GameScene::playBGM() {
 	auto ins = SimpleAudioEngine::getInstance();
 	ins->playBackgroundMusic("music/bgm.mp3", true);
+}
+
+void GameScene::transfer(EventCustom * event) {
+	if (isTransfer) return;
+	int randoor = rand() % 4;
+	int randoor2 = rand() % 4;
+
+	auto m = doorposition.cbegin();
+	auto n = m;
+	int count = 0;
+	for (; m != doorposition.cend(); m++) {
+		if (count == randoor) {
+			break;
+		}
+		count++;
+	}
+	count = 0;
+	for (; n != doorposition.cend(); n++) {
+		if (count == randoor2) {
+			break;
+		}
+		count++;
+	}
+	
+	auto i = doorposition.cbegin();
+	for (; i != doorposition.cend(); i ++) {
+		
+		if (player1->getBoundingBox().containsPoint(*i) && i != m) {
+			player1->setPosition(*m);
+			isTransfer = true;
+			break;
+		}
+		if (player2->getBoundingBox().containsPoint(*i) && i != n) {
+			player2->setPosition(*n);
+			isTransfer = true;
+			break;
+		}
+	}
+}
+
+void GameScene::updateIsTransfer(float fl) {
+	isTransfer = false;
 }
