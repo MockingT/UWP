@@ -1,4 +1,4 @@
-#include "GameScene.h"
+﻿#include "GameScene.h"
 
 USING_NS_CC;
 
@@ -103,7 +103,7 @@ bool GameScene::init() {
 	Sprite* sp2 = Sprite::create("hp.png", CC_RECT_PIXELS_TO_POINTS(Rect(0, 320, 420, 47)));
 	Sprite* sp = Sprite::create("hp.png", CC_RECT_PIXELS_TO_POINTS(Rect(610, 362, 4, 16)));
 
-	hp1 = 100, hp2 = 100;
+	hp1 = 100, hp2 = 100, ct;
 
 	pT1 = ProgressTimer::create(sp);
 	pT1->setScaleX(90);
@@ -130,6 +130,18 @@ bool GameScene::init() {
 	sp2->setAnchorPoint(Vec2(0, 0));
 	sp2->setPosition(Vec2(origin.x + 800 + pT2->getContentSize().width, origin.y + visibleSize.height - sp0->getContentSize().height));
 	addChild(sp2, 0);
+
+	/*player1 = Sprite::create("Fire 0.png");
+	player1->setPosition(visibleSize.width / 2 - 8, player1->getContentSize().height + 10);
+	this->addChild(player1, 1);
+	// 旋转180°
+	player1->setRotation(180);
+	headingLeft1 = false;
+
+	playerFeet = Sprite::create("Image 0.png");
+	playerFeet->setPosition(visibleSize.width / 2, playerFeet->getContentSize().height);
+	playerFeet->s
+	this->addChild(playerFeet, 1);*/
 
 	auto texture = Director::getInstance()->getTextureCache()->addImage("left.png");
 	auto frame0 = SpriteFrame::createWithTexture(texture, CC_RECT_PIXELS_TO_POINTS(Rect(0, 0, 60, 83)));
@@ -163,6 +175,7 @@ bool GameScene::init() {
 
 	this->addChild(player2, 1);
 	this->addChild(player1, 1);
+
 	headingLeft1 = false;
 	headingLeft2 = true;
 
@@ -174,6 +187,9 @@ bool GameScene::init() {
 
 	// 调度器
 	schedule(schedule_selector(GameScene::update), 0.04f, kRepeatForever, 0);
+
+	srand(time(NULL));
+
 	return true;
 }
 
@@ -181,7 +197,7 @@ void GameScene::moveAni() {
 	move.reserve(10);
 	char file[15];
 	for (int i = 0; i < 10; i++) {
-		sprintf(file, "Image %d.png", (i + 1) % 10);
+		sprintf(file, "Image %d.png",(i + 1) % 10);
 		auto frame = SpriteFrame::create(file, CC_RECT_PIXELS_TO_POINTS(Rect(0, 0, 33, 32)));
 		move.pushBack(frame);
 	}
@@ -259,7 +275,7 @@ void GameScene::fireBullet(int p) {
 			moveby = MoveBy::create(1.5f, Vec2(visibleSize.width, 0));
 		}
 		bullets2.push_back(bullet);
-
+		
 		addChild(bullet, 1);
 		//SimpleAudioEngine::getInstance()->playEffect("music/fire.wav", false);
 
@@ -270,12 +286,12 @@ void GameScene::fireBullet(int p) {
 			Sequence::create(
 				moveby,
 				CallFunc::create([bullet, this] {
-					if (bullet->getPosition().y >= visibleSize.height) {
-						auto tmp = bullet;
-						tmp->removeFromParentAndCleanup(true);
-						bullets2.remove(bullet);
-					}
-				}),
+			if (bullet->getPosition().y >= visibleSize.height) {
+				auto tmp = bullet;
+				tmp->removeFromParentAndCleanup(true);
+				bullets2.remove(bullet);
+			}
+		}),
 				nullptr
 			)
 		);
@@ -319,7 +335,7 @@ void GameScene::onKeyPressed(EventKeyboard::KeyCode code, Event* event) {
 			headingLeft1 = true;
 		}
 		if (player1->getPosition().x > 30) {
-			player1->getPhysicsBody()->setVelocity(Vec2(-200,0) + player1->getPhysicsBody()->getVelocity());
+			player1->getPhysicsBody()->setVelocity(Vec2(-200, 0) + player1->getPhysicsBody()->getVelocity());
 		}
 		player1->runAction(Animate::create(Animation::createWithSpriteFrames(move1, 0.05f, 1)));
 		break;
@@ -365,7 +381,7 @@ void GameScene::onKeyPressed(EventKeyboard::KeyCode code, Event* event) {
 		player2->runAction(Animate::create(Animation::createWithSpriteFrames(move1, 0.05f, 1)));
 		break;
 	case EventKeyboard::KeyCode::KEY_UP_ARROW:
-		if (player2->getPosition().y < visibleSize.height-100) {
+		if (player2->getPosition().y < visibleSize.height - 100) {
 			player2->getPhysicsBody()->setVelocity(Vec2(0, 200) + player2->getPhysicsBody()->getVelocity());
 		}
 		player2->runAction(Animate::create(Animation::createWithSpriteFrames(move1, 0.05f, 1)));
@@ -395,13 +411,14 @@ void GameScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event) {
 	}
 }
 
+
 void GameScene::hitByBullet(EventCustom * event) {
 	auto gameover = CallFunc::create(CC_CALLBACK_0(GameScene::gameOver, this));
 	for (auto i : bullets1) {
 		if (player2->getBoundingBox().containsPoint(i->getPosition())) {
 			// player2 掉血
 			hp2 = hp2 - 10 <= 0 ? 0 : hp2 - 10;
-
+			
 			auto tmp = i;
 			bullets1.remove(i);
 			tmp->removeFromParentAndCleanup(true);
@@ -430,12 +447,37 @@ void GameScene::update(float fl) {
 	// 分发自定义事件
 	EventCustom e("hitByBullet");
 	_eventDispatcher->dispatchEvent(&e);
+
+	EventCustom e1("eatFruits");
+	_eventDispatcher->dispatchEvent(&e1);
 	//gameOver();
+	ct++;
+	if (ct == 250) {
+		randomOffer();
+		ct = 0;
+	}
+	if (ct == 200) {
+		if (apple != nullptr) {
+			apple->removeFromParentAndCleanup(true);
+			apple = nullptr;
+		}
+		if (banana != nullptr) {
+			banana->removeFromParentAndCleanup(true);
+			banana = nullptr;
+		}
+		if (grape != nullptr) {
+			grape->removeFromParentAndCleanup(true);
+			grape = nullptr;
+		}
+	}
 }
 
 void GameScene::addCustomListener() {
 	auto meetListener = EventListenerCustom::create("hitByBullet", CC_CALLBACK_1(GameScene::hitByBullet, this));
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(meetListener, this);
+
+	auto meetListener1 = EventListenerCustom::create("eatFruits", CC_CALLBACK_1(GameScene::eatFruits, this));
+	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(meetListener1, this);
 }
 
 void GameScene::gameOver() {
@@ -476,4 +518,120 @@ void GameScene::gameOver() {
 void GameScene::replayCallback(Ref * pSender) {
 	Director::getInstance()->resume();
 	Director::getInstance()->replaceScene(GameScene::createScene());
+}
+
+// 随机提供可以补血的物品
+void GameScene::randomOffer() {
+	int ranX = rand() % ((int)visibleSize.width - 50);
+	if (ranX < 50)
+	{
+		ranX = 50;
+	}
+	auto ranPoint = Point(ranX, visibleSize.height - 80);
+
+	apple = Sprite::create("apple.png");
+	apple->setPosition(ranPoint);
+	auto appleBody = PhysicsBody::createBox(apple->getContentSize(), PhysicsMaterial(100.0f, 0.5f, 0.0f));
+	appleBody->setCategoryBitmask(0x100);
+	appleBody->setCollisionBitmask(0x100);
+	appleBody->setContactTestBitmask(0x100);
+	appleBody->setDynamic(true);
+	appleBody->setGravityEnable(true);
+	apple->setPhysicsBody(appleBody);
+	this->addChild(apple, 1);
+
+	int ranX2 = rand() % ((int)visibleSize.width - 50);
+	if (ranX2 < 50)
+	{
+		ranX2 = 50;
+	}
+	auto ranPoint2 = Point(ranX2, visibleSize.height - 80);
+
+	banana = Sprite::create("banana.png");
+	banana->setPosition(ranPoint2);
+	auto bananaBody = PhysicsBody::createBox(banana->getContentSize(), PhysicsMaterial(100.0f, 0.5f, 0.0f));
+	bananaBody->setCategoryBitmask(0x100);
+	bananaBody->setCollisionBitmask(0x100);
+	bananaBody->setContactTestBitmask(0x100);
+	bananaBody->setDynamic(true);
+	bananaBody->setGravityEnable(true);
+	banana->setPhysicsBody(bananaBody);
+	this->addChild(banana, 1);
+
+	int ranX3 = rand() % ((int)visibleSize.width - 50);
+	if (ranX3 < 50)
+	{
+		ranX3 = 50;
+	}
+	auto ranPoint3 = Point(ranX3, visibleSize.height - 80);
+
+	grape = Sprite::create("grape.png");
+	grape->setPosition(ranPoint3);
+	auto grapeBody = PhysicsBody::createBox(grape->getContentSize(), PhysicsMaterial(100.0f, 0.5f, 0.0f));
+	grapeBody->setCategoryBitmask(0x100);
+	grapeBody->setCollisionBitmask(0x100);
+	grapeBody->setContactTestBitmask(0x100);
+	grapeBody->setDynamic(true);
+	grapeBody->setGravityEnable(true);
+	grape->setPhysicsBody(grapeBody);
+	this->addChild(grape, 1);
+}
+
+void GameScene::eatFruits(EventCustom * event) {
+	if (apple != nullptr && player1->getBoundingBox().containsPoint(apple->getPosition())) {
+		hp1 = hp1 + 5 > 100 ? 100 : hp1 + 5;
+		CCProgressTo* progress = CCProgressTo::create(0.5, hp1);
+		pT1->runAction(progress);
+		if (apple != nullptr) {
+			apple->removeFromParentAndCleanup(true);
+			apple = nullptr;
+		}
+	}
+	if (apple != nullptr && player2->getBoundingBox().containsPoint(apple->getPosition())) {
+		hp2 = hp2 + 5 > 100 ? 100 : hp2 + 5;
+		CCProgressTo* progress = CCProgressTo::create(0.5, hp2);
+		pT2->runAction(progress);
+		if (apple != nullptr) {
+			apple->removeFromParentAndCleanup(true);
+			apple = nullptr;
+		}
+	}
+
+	if (banana != nullptr && player1->getBoundingBox().containsPoint(banana->getPosition())) {
+		hp1 = hp1 + 20 > 100 ? 100 : hp1 + 20;
+		CCProgressTo* progress = CCProgressTo::create(0.5, hp1);
+		pT1->runAction(progress);
+		if (banana != nullptr) {
+			banana->removeFromParentAndCleanup(true);
+			banana = nullptr;
+		}
+	}
+	if (banana != nullptr && player2->getBoundingBox().containsPoint(banana->getPosition())) {
+		hp2 = hp2 + 20 > 100 ? 100 : hp2 + 20;
+		CCProgressTo* progress = CCProgressTo::create(0.5, hp2);
+		pT2->runAction(progress);
+		if (banana != nullptr) {
+			banana->removeFromParentAndCleanup(true);
+			banana = nullptr;
+		}
+	}
+
+	if (grape != nullptr && player1->getBoundingBox().containsPoint(grape->getPosition())) {
+		hp1 = hp1 + 10 > 100 ? 100 : hp1 + 10;
+		CCProgressTo* progress = CCProgressTo::create(0.5, hp1);
+		pT1->runAction(progress);
+		if (grape != nullptr) {
+			grape->removeFromParentAndCleanup(true);
+			grape = nullptr;
+		}
+	}
+	if (grape != nullptr && player2->getBoundingBox().containsPoint(grape->getPosition())) {
+		hp2 = hp2 + 10 > 100 ? 100 : hp2 + 10;
+		CCProgressTo* progress = CCProgressTo::create(0.5, hp2);
+		pT2->runAction(progress);
+		if (grape != nullptr) {
+			grape->removeFromParentAndCleanup(true);
+			grape = nullptr;
+		}
+	}
 }

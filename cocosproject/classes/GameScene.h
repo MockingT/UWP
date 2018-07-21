@@ -34,8 +34,13 @@ public:
 
 	void gameOver();
 
+	// 随机提供可以补血的物品
+	void randomOffer();
+
 	void replayCallback(Ref * pSender);
 
+	// 吃天上掉的水果会补血
+	void eatFruits(EventCustom * event);
 	// implement the "static create()" method manually
 	CREATE_FUNC(GameScene);
 
@@ -43,6 +48,7 @@ private:
 	Sprite * player1;
 	Sprite * player2;
 	Sprite * playerFeet;
+	Sprite * apple, *banana, *grape;
 	cocos2d::Vector<SpriteFrame*> move;
 	cocos2d::Vector<SpriteFrame*> fire;
 	cocos2d::Vector<SpriteFrame*> move1;
@@ -57,7 +63,7 @@ private:
 	PhysicsWorld* m_world;
 
 	cocos2d::ProgressTimer* pT1, *pT2;
-	int hp1, hp2;
+	int hp1, hp2, ct;
 	list<Sprite*> bullets1, bullets2;
 };
 
