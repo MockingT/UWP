@@ -133,6 +133,10 @@ bool GameScene::init() {
 	fireAni();
 	addTouchListener();
 	addKeyboardListener();
+	addCustomListener();
+
+	// 调度器
+	schedule(schedule_selector(GameScene::update), 0.04f, kRepeatForever, 0);
 
 	return true;
 }
@@ -169,11 +173,13 @@ void GameScene::fireAni() {
 
 //发射子弹
 void GameScene::fireBullet(int p) {
-	auto bullet = Sprite::create("bullet.png");
-	bullet->setAnchorPoint(Vec2(0.5, 0.5));
+	
 	MoveBy* moveby;
 	if (p == 1) {
+		auto bullet = Sprite::create("bullet.png");
+		bullet->setAnchorPoint(Vec2(0.5, 0.5));
 		bullet->setPosition(player1->getPosition());
+
 		if (headingLeft1) {
 			bullet->setRotation(-90);
 			moveby = MoveBy::create(1.5f, Vec2(-visibleSize.width, 0));
@@ -182,9 +188,32 @@ void GameScene::fireBullet(int p) {
 			bullet->setRotation(90);
 			moveby = MoveBy::create(1.5f, Vec2(visibleSize.width, 0));
 		}
+		bullets1.push_back(bullet);
+		addChild(bullet, 1);
+		//SimpleAudioEngine::getInstance()->playEffect("music/fire.wav", false);
+
+		// 移除飞出屏幕外的子弹
+		// Todo
+
+		bullet->runAction(
+			Sequence::create(
+				moveby,
+				CallFunc::create([bullet, this] {
+			if (bullet->getPosition().y >= visibleSize.height) {
+				auto tmp = bullet;
+				tmp->removeFromParentAndCleanup(true);
+				bullets1.remove(bullet);
+			}
+		}),
+				nullptr
+			)
+		);
 	}
 	else if (p == 2) {
+		auto bullet = Sprite::create("bullet.png");
+		bullet->setAnchorPoint(Vec2(0.5, 0.5));
 		bullet->setPosition(player2->getPosition());
+
 		if (headingLeft2) {
 			bullet->setRotation(-90);
 			moveby = MoveBy::create(1.5f, Vec2(-visibleSize.width, 0));
@@ -193,26 +222,29 @@ void GameScene::fireBullet(int p) {
 			bullet->setRotation(90);
 			moveby = MoveBy::create(1.5f, Vec2(visibleSize.width, 0));
 		}
-	}
-	
-	addChild(bullet, 1);
-	//SimpleAudioEngine::getInstance()->playEffect("music/fire.wav", false);
+		bullets2.push_back(bullet);
+		
+		addChild(bullet, 1);
+		//SimpleAudioEngine::getInstance()->playEffect("music/fire.wav", false);
 
-	// 移除飞出屏幕外的子弹
-	// Todo
-	
-	bullet->runAction(
-		Sequence::create(
-			moveby,
-			CallFunc::create([bullet, this] {
-		if (bullet->getPosition().y >= visibleSize.height) {
-			auto tmp = bullet;
-			tmp->removeFromParentAndCleanup(true);
-		}
-	}),
-			nullptr
-		)
-	);
+		// 移除飞出屏幕外的子弹
+		// Todo
+
+		bullet->runAction(
+			Sequence::create(
+				moveby,
+				CallFunc::create([bullet, this] {
+			if (bullet->getPosition().y >= visibleSize.height) {
+				auto tmp = bullet;
+				tmp->removeFromParentAndCleanup(true);
+				bullets2.remove(bullet);
+			}
+		}),
+				nullptr
+			)
+		);
+	}
+
 }
 
 void GameScene::addTouchListener() {
@@ -315,6 +347,74 @@ void GameScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event) {
 	}
 }
 
-void GameScene::hitByBullet() {
+void GameScene::hitByBullet(EventCustom * event) {
+	auto gameover = CallFunc::create(CC_CALLBACK_0(GameScene::gameOver, this));
+	for (auto i : bullets1) {
+		if (player2->getBoundingBox().containsPoint(i->getPosition())) {
+			// player2 掉血
+			hp2 = hp2 - 10 <= 0 ? 0 : hp2 - 10;
+			
+			auto tmp = i;
+			bullets1.remove(i);
+			tmp->removeFromParentAndCleanup(true);
+			CCProgressTo* progress = CCProgressTo::create(0.5, hp2);
+			pT2->runAction(Sequence::create(progress, gameover, nullptr));
+			break;
+		}
+	}
+
+	for (auto i : bullets2) {
+		if (player1->getBoundingBox().containsPoint(i->getPosition())) {
+			// player1 掉血
+			hp1 = hp1 - 10 <= 0 ? 0 : hp1 - 10;
+
+			auto tmp = i;
+			bullets2.remove(i);
+			tmp->removeFromParentAndCleanup(true);
+			CCProgressTo* progress = CCProgressTo::create(0.5, hp1);
+			pT1->runAction(Sequence::create(progress, gameover, nullptr));
+			break;
+		}
+	}
+}
+
+void GameScene::update(float fl) {
+	// 分发自定义事件
+	EventCustom e("hitByBullet");
+	_eventDispatcher->dispatchEvent(&e);
+	//gameOver();
+}
+
+void GameScene::addCustomListener() {
+	auto meetListener = EventListenerCustom::create("hitByBullet", CC_CALLBACK_1(GameScene::hitByBullet, this));
+	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(meetListener, this);
+}
+
+void GameScene::gameOver() {
+
+	TTFConfig ttfConfig;
+	ttfConfig.fontFilePath = "fonts/arial.ttf";
+	ttfConfig.fontSize = 36;
+
+	if (hp1 <= 0 || hp2 <= 0) {
+		auto gameOver = Sprite::create("gameOver.png");
+		gameOver->setPosition(Vec2(origin.x + visibleSize.width / 2, origin.y + visibleSize.height / 2));
+		this->addChild(gameOver, 3);
+	}
+
+	if (hp1 <= 0) {
+		auto winLabel = Label::createWithTTF(ttfConfig, "Player2 Win!");
+		winLabel->setPosition(Vec2(origin.x + visibleSize.width / 2, origin.y + visibleSize.height / 2 - 100));
+		this->addChild(winLabel, 3);
+		Director::getInstance()->pause();
+		Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
+	}
+	else if (hp2 <= 0) {
+		auto winLabel = Label::createWithTTF(ttfConfig, "Player1 Win!");
+		winLabel->setPosition(Vec2(origin.x + visibleSize.width / 2, origin.y + visibleSize.height / 2 - 100));
+		this->addChild(winLabel, 3);
+		Director::getInstance()->pause();
+		Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
+	}
 
 }

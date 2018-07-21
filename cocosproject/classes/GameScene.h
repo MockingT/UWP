@@ -28,7 +28,11 @@ public:
 	void onKeyPressed(EventKeyboard::KeyCode code, Event* event);
 	void onKeyReleased(EventKeyboard::KeyCode code, Event* event);
 
-	void hitByBullet();
+	void hitByBullet(EventCustom * event);
+	void update(float);
+	void addCustomListener();
+
+	void gameOver();
 
 	// implement the "static create()" method manually
 	CREATE_FUNC(GameScene);
@@ -52,7 +56,7 @@ private:
 
 	cocos2d::ProgressTimer* pT1, *pT2;
 	int hp1, hp2;
-
+	list<Sprite*> bullets1, bullets2;
 };
 
 #endif // __GAME_SCENE_H__
