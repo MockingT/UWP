@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="40" height="25" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" source="map1.tsx"/>
+ <tileset firstgid="145" source="map2.tsx"/>
+ <tileset firstgid="235" name="14f1ea4d3b3e73a77e5271a34572ee2a" tilewidth="32" tileheight="32" spacing="1" margin="1">
+  <image source="14f1ea4d3b3e73a77e5271a34572ee2a.jpg" width="431" height="437"/>
+ </tileset>
+ <layer name="bg" width="40" height="25">
+  <data encoding="base64" compression="zlib">
+   eJzt1Wc3FmAAgOGXRKhsqYTsLStFRssus+xZZhoqoqX1w13/4jmd83y4Pt0/4E5KJBLJXCCFi6SSxiXSySCTywHaFa6SRTY55JJHPgUUco2iAO06N7hJMbcooZQyblNOBZUBWhXV1FBLHfU00EgTzbRwJ0BrpY12OujkLl3c4z7d9PAgQOulj34GeMgjHvOEpwwyxHCANsIoY4zzjOdMMMkU08wwG6C94CVzzLPAIksss8Iqa6wHaBts8orXbLHNDrvssc8bDgK0t7zjPR845COf+MwRx3zhJEA75Svf+M4PfnLGL37zh7/8C9CSEvFv8W/xb/Fv8W/xb/Fv8W//19/OAeze9Bs=
+  </data>
+ </layer>
+ <objectgroup name="brick">
+  <object x="572" y="672" width="234" height="124"/>
+  <object x="738" y="450" width="194" height="32"/>
+  <object x="1094" y="322" width="186" height="30"/>
+  <object x="318" y="544" width="198" height="32"/>
+  <object x="0" y="194" width="188" height="28"/>
+  <object x="1028" y="608" width="132" height="34"/>
+  <object x="834" y="352" width="124" height="96"/>
+  <object x="1216" y="164" width="64" height="56"/>
+  <object x="552" y="188" width="116" height="70"/>
+  <object x="-2" y="450" width="68" height="62"/>
+  <object x="126" y="738" width="68" height="56"/>
+  <object x="378" y="704" width="100" height="28"/>
+  <object x="224" y="576" width="126" height="22"/>
+  <object x="130" y="610" width="28" height="28"/>
+  <object x="0" y="672" width="70" height="26"/>
+  <object x="414" y="224" width="130" height="32"/>
+  <object x="226" y="348" width="102" height="34"/>
+  <object x="1088" y="518" width="100" height="26"/>
+  <object x="892" y="608" width="68" height="26"/>
+  <object x="806" y="736" width="154" height="56"/>
+ </objectgroup>
+ <layer name="bricklayer" width="40" height="25">
+  <properties>
+   <property name="collidable" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJzt1tlqwkAUgOF5/4fQWr2wSr2oVRtxv6lasa37glq39/APokQSoZkcDWnzw3chYSaDkmOUCgsLC1pjTPCOJlpo4wMdl3v1McAQI6HzrbHRXJtDHgW8YYElVviROFzYn0vnObCu8VoXn/jCt8B+0pmzYooZ5j6fxSlzVmyxw97FutMcvEUSs9XLHPxPeX0WJX4r6cqooIqav0c5Z9xh/6Llc09dvl8ELUPJfGcRRPGAGB4RR0JgbzdZ728tiSekkFbH/7FnZITvrzuvX5DFq7K/Hzpd0013XpeU/Xmvo3Hl2m87AAFhXCo=
+  </data>
+ </layer>
+ <objectgroup name="door">
+  <object x="576" y="130" width="32" height="54"/>
+  <object x="1092" y="254" width="30" height="64"/>
+  <object x="706" y="606" width="34" height="62"/>
+  <object x="288" y="284" width="38" height="60"/>
+ </objectgroup>
+ <layer name="doorlayer" width="40" height="25">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2DoA1XGgXYBfmA0yN03CgYWUJJ+6ZH2KUm/o2l/FIyCUTAKhg8YbW+NglFAewAAJuABZQ==
+  </data>
+ </layer>
+</map>
