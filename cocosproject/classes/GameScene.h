@@ -20,6 +20,8 @@ public:
 
 	void fireBullet(int p);
 
+	bool onConcactBegin(PhysicsContact & contact);
+
 	void addTouchListener();
 
 	bool onTouchBegan(Touch * touch, Event * event);
@@ -38,17 +40,17 @@ public:
 
 	void playBGM();
 
-	// Ëæ»úÌá¹©¿ÉÒÔ²¹ÑªµÄÎïÆ·
+	// éšæœºæä¾›å¯ä»¥è¡¥è¡€çš„ç‰©å“
 	void randomOffer();
 
 	void replayCallback(Ref * pSender);
 
-	// ½øÈë´«ËÍÃÅËæ»ú´«ËÍ
+	// è¿›å…¥ä¼ é€é—¨éšæœºä¼ é€
 	void transfer(EventCustom * event);
 
 	void updateIsTransfer(float);
 
-	// ³ÔÌìÉÏµôµÄË®¹û»á²¹Ñª
+	// åƒå¤©ä¸Šæ‰çš„æ°´æœä¼šè¡¥è¡€
 	void eatFruits(EventCustom * event);
 	// implement the "static create()" method manually
 	CREATE_FUNC(GameScene);
