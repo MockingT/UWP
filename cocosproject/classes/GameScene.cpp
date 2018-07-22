@@ -1,4 +1,4 @@
-﻿#include "GameScene.h"
+#include "GameScene.h"
 #include <algorithm>
 
 USING_NS_CC;
@@ -50,7 +50,6 @@ bool GameScene::init() {
 	base->setScaleX(3);
 	base->setPosition(Vec2(visibleSize.width / 2, -20));
 
-	// 地板的刚体属性
 	auto baseBody = PhysicsBody::createBox(base->getContentSize(), PhysicsMaterial(100.0f, 0.5f, 0.0f));
 	baseBody->setCategoryBitmask(0xFFFFFFFF);
 	baseBody->setCollisionBitmask(0xFFFFFFFF);
@@ -61,13 +60,13 @@ bool GameScene::init() {
 
 	this->addChild(base, 1);
 
-	// 添加背景图，加载tmx文件
 	auto tmx = TMXTiledMap::create("map.tmx");
 	float scale = visibleSize.height / tmx->getContentSize().height;
 	tmx->setScale(scale);
 	tmx->setPosition(visibleSize.width / 2, visibleSize.height / 2);
 	tmx->setAnchorPoint(Vec2(0.5, 0.5));
 	this->addChild(tmx, 0);
+
 
 	auto brick = tmx->getObjectGroup("brick");
 	auto bricks = brick->getObjects();
@@ -89,6 +88,7 @@ bool GameScene::init() {
 		baseBody->setDynamic(false);
 		base->setPhysicsBody(baseBody);
 		base->setPosition(x * scale, y * scale);
+		base->setTag(2);
 		this->addChild(base, 1);
 
 	}
@@ -103,13 +103,8 @@ bool GameScene::init() {
 		float width = dict["width"].asFloat();
 		float height = dict["height"].asFloat();
 		doorposition.push_back(Vec2((x + width / 2) * scale, (y + height / 2) * scale));
-		CCLOG("%f %f", x * scale, y * scale);
 	}
-	CCLOG("-----");
-	for (auto i : doorposition) {
-		CCLOG("%f %f", i.x, i.y);
-	}
-	
+
 
 	auto playerLabel1 = Label::createWithTTF(ttfConfig, "player1: ");
 	playerLabel1->setPosition(Vec2(origin.x + 50, visibleSize.height - 15));
@@ -158,7 +153,6 @@ bool GameScene::init() {
 	// 旋转180°
 	player1->setRotation(180);
 	headingLeft1 = false;
-
 	playerFeet = Sprite::create("Image 0.png");
 	playerFeet->setPosition(visibleSize.width / 2, playerFeet->getContentSize().height);
 	playerFeet->s
@@ -208,9 +202,14 @@ bool GameScene::init() {
 	preloadmusic();
 	playBGM();
 
+	// 子弹撞墙的碰撞检测
+	auto contactListener = EventListenerPhysicsContact::create();
+	contactListener->onContactBegin = CC_CALLBACK_1(GameScene::onConcactBegin, this);
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(contactListener, this);
+
 	// 调度器
 	schedule(schedule_selector(GameScene::update), 0.04f, kRepeatForever, 0);
-	schedule(schedule_selector(GameScene::updateIsTransfer), 1.0f, kRepeatForever, 0);
+	schedule(schedule_selector(GameScene::updateIsTransfer), 1.5f, kRepeatForever, 0);
 
 	srand(time(NULL));
 
@@ -221,7 +220,7 @@ void GameScene::moveAni() {
 	move.reserve(10);
 	char file[15];
 	for (int i = 0; i < 10; i++) {
-		sprintf(file, "Image %d.png",(i + 1) % 10);
+		sprintf(file, "Image %d.png", (i + 1) % 10);
 		auto frame = SpriteFrame::create(file, CC_RECT_PIXELS_TO_POINTS(Rect(0, 0, 33, 32)));
 		move.pushBack(frame);
 	}
@@ -267,6 +266,17 @@ void GameScene::fireBullet(int p) {
 			moveby = MoveBy::create(1.5f, Vec2(visibleSize.width, 0));
 		}
 		bullets1.push_back(bullet);
+
+		auto bulletBody = PhysicsBody::createBox(bullet->getContentSize(), PhysicsMaterial(100.0f, 1.0f, 1.0f));
+		bulletBody->setCategoryBitmask(0x04);
+		bulletBody->setCollisionBitmask(0x04);
+		bulletBody->setContactTestBitmask(0x04);
+		bulletBody->setGravityEnable(false);
+		bulletBody->setRotationEnable(false);
+		bulletBody->setDynamic(true);
+		bullet->setPhysicsBody(bulletBody);
+		bullet->setTag(3);
+
 		addChild(bullet, 1);
 		//SimpleAudioEngine::getInstance()->playEffect("music/fire.wav", false);
 
@@ -301,7 +311,17 @@ void GameScene::fireBullet(int p) {
 			moveby = MoveBy::create(1.5f, Vec2(visibleSize.width, 0));
 		}
 		bullets2.push_back(bullet);
-		
+
+		auto bulletBody = PhysicsBody::createBox(bullet->getContentSize(), PhysicsMaterial(100.0f, 1.0f, 1.0f));
+		bulletBody->setCategoryBitmask(0x08);
+		bulletBody->setCollisionBitmask(0x08);
+		bulletBody->setContactTestBitmask(0x08);
+		bulletBody->setGravityEnable(false);
+		bulletBody->setRotationEnable(false);
+		bulletBody->setDynamic(true);
+		bullet->setPhysicsBody(bulletBody);
+		bullet->setTag(4);
+
 		addChild(bullet, 1);
 		//SimpleAudioEngine::getInstance()->playEffect("music/fire.wav", false);
 
@@ -323,6 +343,61 @@ void GameScene::fireBullet(int p) {
 		);
 	}
 
+}
+
+bool GameScene::onConcactBegin(PhysicsContact & contact) {
+	auto c1 = contact.getShapeA(), c2 = contact.getShapeB();
+
+	auto a = c1->getBody()->getNode();
+	auto b = c2->getBody()->getNode();
+	if (a && b) {
+		if (a->getTag() == 3 || a->getTag() == 4) {
+			if (a->getTag() == 3) {
+				a->setTag(5);
+				for (auto i : bullets1) {
+					if (i->getTag() == 5) {
+						bullets1.remove(i);
+						break;
+					}
+				}
+			}
+			else {
+				a->setTag(5);
+				for (auto i : bullets2) {
+					if (i->getTag() == 5) {
+						bullets2.remove(i);
+						break;
+					}
+				}
+			}
+			a->removeFromParentAndCleanup(true);
+			return true;
+		}
+		else if (b->getTag() == 3 || b->getTag() == 4) {
+			if (b->getTag() == 3) {
+				b->setTag(5);
+				for (auto i : bullets1) {
+					if (i->getTag() == 5) {
+						bullets1.remove(i);
+						break;
+					}
+				}
+			}
+			else {
+				b->setTag(5);
+				for (auto i : bullets2) {
+					if (i->getTag() == 5) {
+						bullets2.remove(i);
+						break;
+					}
+				}
+			}
+			b->removeFromParentAndCleanup(true);
+			return true;
+		}
+	}
+
+	return true;
 }
 
 void GameScene::addTouchListener() {
@@ -444,7 +519,7 @@ void GameScene::hitByBullet(EventCustom * event) {
 		if (player2->getBoundingBox().containsPoint(i->getPosition())) {
 			// player2 掉血
 			hp2 = hp2 - 10 <= 0 ? 0 : hp2 - 10;
-			
+
 			auto tmp = i;
 			bullets1.remove(i);
 			tmp->removeFromParentAndCleanup(true);
@@ -479,13 +554,13 @@ void GameScene::update(float fl) {
 
 	EventCustom e2("transfer");
 	_eventDispatcher->dispatchEvent(&e2);
-	
+
+	//gameOver();
 	ct++;
 	if (ct == 250) {
 		randomOffer();
 		ct = 0;
 	}
-	
 	if (ct == 200) {
 		if (apple != nullptr) {
 			apple->removeFromParentAndCleanup(true);
@@ -499,7 +574,6 @@ void GameScene::update(float fl) {
 			grape->removeFromParentAndCleanup(true);
 			grape = nullptr;
 		}
-		CCLOG("%f %f", player1->getPosition().x, player1->getPosition().y);
 	}
 }
 
@@ -712,10 +786,10 @@ void GameScene::transfer(EventCustom * event) {
 		}
 		count++;
 	}
-	
+
 	auto i = doorposition.cbegin();
-	for (; i != doorposition.cend(); i ++) {
-		
+	for (; i != doorposition.cend(); i++) {
+
 		if (player1->getBoundingBox().containsPoint(*i) && i != m) {
 			player1->setPosition(*m);
 			isTransfer = true;
