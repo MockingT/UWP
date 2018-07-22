@@ -40,17 +40,17 @@ public:
 
 	void playBGM();
 
-	// éšæœºæä¾›å¯ä»¥è¡¥è¡€çš„ç‰©å“
+	// Ëæ»úÌá¹©¿ÉÒÔ²¹ÑªµÄÎïÆ·
 	void randomOffer();
 
 	void replayCallback(Ref * pSender);
 
-	// è¿›å…¥ä¼ é€é—¨éšæœºä¼ é€
+	// ½øÈë´«ËÍÃÅËæ»ú´«ËÍ
 	void transfer(EventCustom * event);
 
 	void updateIsTransfer(float);
 
-	// åƒå¤©ä¸Šæ‰çš„æ°´æœä¼šè¡¥è¡€
+	// ³ÔÌìÉÏµôµÄË®¹û»á²¹Ñª
 	void eatFruits(EventCustom * event);
 	// implement the "static create()" method manually
 	CREATE_FUNC(GameScene);

@@ -1,4 +1,4 @@
-#include "GameScene.h"
+﻿#include "GameScene.h"
 #include <algorithm>
 
 USING_NS_CC;
@@ -40,6 +40,12 @@ bool GameScene::init() {
 	visibleSize = Director::getInstance()->getVisibleSize();
 	origin = Director::getInstance()->getVisibleOrigin();
 
+	// 添加边界
+	auto edgeSp = Sprite::create();  //创建一个精灵
+	auto boundBody = PhysicsBody::createEdgeBox(visibleSize, PhysicsMaterial(0.0f, 1.0f, 0.0f), 3);  //edgebox是不受刚体碰撞影响的一种刚体，我们用它来设置物理世界的边界
+	edgeSp->setPosition(visibleSize.width / 2, visibleSize.height / 2);  //位置设置在屏幕中央
+	edgeSp->setPhysicsBody(boundBody);
+	addChild(edgeSp);
 
 	TTFConfig ttfConfig;
 	ttfConfig.fontFilePath = "fonts/arial.ttf";
@@ -147,17 +153,6 @@ bool GameScene::init() {
 	sp2->setPosition(Vec2(origin.x + 800 + pT2->getContentSize().width, origin.y + visibleSize.height - sp0->getContentSize().height));
 	addChild(sp2, 0);
 
-	/*player1 = Sprite::create("Fire 0.png");
-	player1->setPosition(visibleSize.width / 2 - 8, player1->getContentSize().height + 10);
-	this->addChild(player1, 1);
-	// 旋转180°
-	player1->setRotation(180);
-	headingLeft1 = false;
-	playerFeet = Sprite::create("Image 0.png");
-	playerFeet->setPosition(visibleSize.width / 2, playerFeet->getContentSize().height);
-	playerFeet->s
-	this->addChild(playerFeet, 1);*/
-
 	auto texture = Director::getInstance()->getTextureCache()->addImage("left.png");
 	auto frame0 = SpriteFrame::createWithTexture(texture, CC_RECT_PIXELS_TO_POINTS(Rect(0, 0, 60, 83)));
 	player1 = Sprite::createWithSpriteFrame(frame0);
@@ -209,7 +204,7 @@ bool GameScene::init() {
 
 	// 调度器
 	schedule(schedule_selector(GameScene::update), 0.04f, kRepeatForever, 0);
-	schedule(schedule_selector(GameScene::updateIsTransfer), 1.5f, kRepeatForever, 0);
+	schedule(schedule_selector(GameScene::updateIsTransfer), 1.0f, kRepeatForever, 0);
 
 	srand(time(NULL));
 
@@ -257,6 +252,11 @@ void GameScene::fireBullet(int p) {
 		bullet->setPosition(player1->getPosition());
 		SimpleAudioEngine::getInstance()->playEffect("music/fire.wav", false);
 
+		auto smoke = ParticleSmoke::create();
+		smoke->setDuration(0.05);
+		smoke->setPosition(player1->getPosition() + Vec2(0, 20));
+		this->addChild(smoke);
+
 		if (headingLeft1) {
 			bullet->setRotation(-90);
 			moveby = MoveBy::create(1.5f, Vec2(-visibleSize.width, 0));
@@ -302,6 +302,12 @@ void GameScene::fireBullet(int p) {
 		bullet->setAnchorPoint(Vec2(0.5, 0.5));
 		bullet->setPosition(player2->getPosition());
 		SimpleAudioEngine::getInstance()->playEffect("music/fire.wav", false);
+
+		auto smoke = ParticleSmoke::create();
+		smoke->setDuration(0.05);
+		smoke->setPosition(player2->getPosition() + Vec2(0, 20));
+		this->addChild(smoke);
+
 		if (headingLeft2) {
 			bullet->setRotation(-90);
 			moveby = MoveBy::create(1.5f, Vec2(-visibleSize.width, 0));
@@ -409,10 +415,10 @@ void GameScene::addTouchListener() {
 
 
 bool GameScene::onTouchBegan(Touch *touch, Event *event) {
-	player1->runAction(Animate::create(Animation::createWithSpriteFrames(move1, 0.05f, 1)));
+	//player1->runAction(Animate::create(Animation::createWithSpriteFrames(move1, 0.05f, 1)));
 	//playerFeet->runAction(Animate::create(Animation::createWithSpriteFrames(move, 0.05f, 1)));
-	player2->runAction(Animate::create(Animation::createWithSpriteFrames(move1, 0.05f, 1)));
-	fireBullet(1);
+	//player2->runAction(Animate::create(Animation::createWithSpriteFrames(move1, 0.05f, 1)));
+	//fireBullet(1);
 	return true;
 }
 
@@ -521,6 +527,7 @@ void GameScene::hitByBullet(EventCustom * event) {
 			hp2 = hp2 - 10 <= 0 ? 0 : hp2 - 10;
 
 			auto tmp = i;
+			
 			bullets1.remove(i);
 			tmp->removeFromParentAndCleanup(true);
 			CCProgressTo* progress = CCProgressTo::create(0.5, hp2);
@@ -638,6 +645,7 @@ void GameScene::randomOffer() {
 	auto ranPoint = Point(ranX, visibleSize.height - 80);
 
 	apple = Sprite::create("apple.png");
+	apple->setScale(1.5);
 	apple->setPosition(ranPoint);
 	auto appleBody = PhysicsBody::createBox(apple->getContentSize(), PhysicsMaterial(100.0f, 0.5f, 0.0f));
 	appleBody->setCategoryBitmask(0x100);
@@ -656,6 +664,7 @@ void GameScene::randomOffer() {
 	auto ranPoint2 = Point(ranX2, visibleSize.height - 80);
 
 	banana = Sprite::create("banana.png");
+	banana->setScale(1.5);
 	banana->setPosition(ranPoint2);
 	auto bananaBody = PhysicsBody::createBox(banana->getContentSize(), PhysicsMaterial(100.0f, 0.5f, 0.0f));
 	bananaBody->setCategoryBitmask(0x100);
@@ -674,6 +683,7 @@ void GameScene::randomOffer() {
 	auto ranPoint3 = Point(ranX3, visibleSize.height - 80);
 
 	grape = Sprite::create("grape.png");
+	grape->setScale(1.5);
 	grape->setPosition(ranPoint3);
 	auto grapeBody = PhysicsBody::createBox(grape->getContentSize(), PhysicsMaterial(100.0f, 0.5f, 0.0f));
 	grapeBody->setCategoryBitmask(0x100);
@@ -791,12 +801,12 @@ void GameScene::transfer(EventCustom * event) {
 	for (; i != doorposition.cend(); i++) {
 
 		if (player1->getBoundingBox().containsPoint(*i) && i != m) {
-			player1->setPosition(*m);
+			player1->setPosition(*m - Vec2(25, 0));
 			isTransfer = true;
 			break;
 		}
 		if (player2->getBoundingBox().containsPoint(*i) && i != n) {
-			player2->setPosition(*n);
+			player2->setPosition(*n - Vec2(25, 0));
 			isTransfer = true;
 			break;
 		}
